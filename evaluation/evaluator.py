@@ -20,7 +20,10 @@ class ResultsEvaluator:
         """
         self.person1_results = pd.read_csv(person1_csv) if os.path.exists(person1_csv) else pd.DataFrame()
         self.person2_results = pd.read_csv(person2_csv) if os.path.exists(person2_csv) else pd.DataFrame()
-        self.ground_truth = pd.read_csv(ground_truth_csv, sep='\t')
+        # Read ground truth with explicit na_values to handle both NaN and literal '\N' strings (backslash-N)
+        # Only include specific markers, not generic 'NA' or 'N/A' which could match partial text
+        self.ground_truth = pd.read_csv(ground_truth_csv, sep='\t', keep_default_na=True, 
+                                       na_values=['\\N', 'nan', 'NaN', ''])
         
     def merge_results(self):
         """Merge person 1 and person 2 results"""
@@ -343,7 +346,10 @@ class ResultsEvaluator:
             # Extract predicted (Polygon OCR from nid-data-140126.csv) values
             pred_english = pred_row.get('name_english', '')
             pred_bangla = pred_row.get('name_bangla', '')
+            # Use father_name, or fall back to spouse_name if father_name is missing
             pred_father = pred_row.get('father_name', '')
+            if pd.isna(pred_father) or (isinstance(pred_father, str) and pred_father.strip() == ''):
+                pred_father = pred_row.get('spouse_name', '')
             pred_mother = pred_row.get('mother_name', '')
             pred_dob = pred_row.get('dob', '')
             pred_nid = pred_row.get('nid_no', '')
