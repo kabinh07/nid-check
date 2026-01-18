@@ -3,3 +3,6 @@ __pycache__/
 *.jpg
 *.jpeg
 *.png
+./nid-data-entry-results-person1.csv
+./nid-data-entry-results-person2.csv
+*.log
